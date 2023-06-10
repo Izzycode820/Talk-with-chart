@@ -305,53 +305,157 @@ vector<double> Admin::viewFines() {
 }
 
 int main() {
-   Session session("localhost", 3306, "username", "password", "library");
+   Session session("127.0.0.1", 3306, "root", "6746192373a", "library");
    Table booksTable = session.getSchema("library").getTable("books");
    Table studentsTable = session.getSchema("library").getTable("students");
 
-   Login login("admin", "admin", session);
-   Admin admin(1, "Admin", "admin@admin.com", "123456789", login, studentsTable);
-   Library library(session);
+   // Prompt the user to log in as a student or an admin
+   string userType;
+   cout << "Are you a student or an admin? ";
+   cin >> userType;
 
-   Book book1(1, "The Great Gatsby", "F. Scott Fitzgerald", "Scribner", true, nullptr, nullptr, booksTable);
-   Book book2(2, "To Kill a Mockingbird", "Harper Lee", "J. B. Lippincott & Co.", true, nullptr, nullptr, booksTable);
-   Book book3(3, "1984", "George Orwell", "Secker & Warburg", true, nullptr, nullptr, booksTable);
+   if (userType == "student") {
+      // If the user is a student, create a Student object and display the available options
+      Login login("student", "password", session);
+      Student student(1, "John Doe", "john.doe@student.com", "9876543210", login, studentsTable);
 
-   Student student1(1, "John Doe", "john.doe@student.com", "9876543210", login, studentsTable);
-   Student student2(2, "Jane Doe", "jane.doe@student.com", "9876543210", login, studentsTable);
+      string option;
+      while (true) {
+         cout << "Choose an option:" << endl;
+         cout << "1. Borrow a book" << endl;
+         cout << "2. Return a book" << endl;
+         cout << "3. Reserve a book" << endl;
+         cout << "4. Pay fines" << endl;
+         cout << "5. Exit" << endl;
 
-   admin.addBook(library, book1);
-   admin.addBook(library, book2);
-   admin.addBook(library, book3);
+         cin >> option;
 
-   admin.addFine(library, student1, 10.0);
+         if (option == "1") {
+            // Borrow a book
+            int bookId;
+            cout << "Enter the ID of the book you want to borrow: ";
+            cin >> bookId;
 
-   library.borrowBook(student1, book1);
-   library.borrowBook(student2, book2);
-   library.reserveBook(student2, book1);
-   library.reserveBook(student1, book3);
+            Book book(bookId, "", "", "", true, nullptr, nullptr, booksTable);
+            student.borrowBook(book);
+         } else if (option == "2") {
+            // Return a book
+            int bookId;
+            cout << "Enter the ID of the book you want to return: ";
+            cin >> bookId;
 
-   library.returnBook(student1, book1);
-   library.reserveBook(student2, book1);
+            Book book(bookId, "", "", "", true, nullptr, nullptr, booksTable);
+            student.returnBook(book);
+         } else if (option == "3") {
+            // Reserve a book
+            int bookId;
+            cout << "Enter the ID of the book you want to reserve: ";
+            cin >> bookId;
 
-   vector<Book*> borrowedBooks = student1.getBorrowedBooks();
-   for (auto book : borrowedBooks) {
-       cout << book->getTitle() << endl;
-   }
+            Book book(bookId, "", "", "", true, nullptr, nullptr, booksTable);
+            student.reserveBook(book);
+         } else if (option == "4") {
+            // Pay fines
+            double amount;
+            cout << "Enter the amount you want to pay: ";
+            cin >> amount;
 
-   vector<Book*> reservedBooks = student2.getReservedBooks();
-   for (auto book : reservedBooks) {
-       cout << book->getTitle() << endl;
-   }
+            student.payFines(amount);
+         } else if (option == "5") {
+            // Exit
+            break;
+         } else {
+            cout << "Invalid option. Please try again." << endl;
+         }
+      }
+   } else if (userType == "admin") {
+      // If the user is an admin, create an Admin object and display the available options
+      Login login("admin", "password", session);
+      Admin admin(1, "Admin", "admin@admin.com", "123456789", login, studentsTable);
 
-   vector<double> fines = student1.getFines();
-   for (auto fine : fines) {
-       cout << fine << endl;
-   }
+      string option;
+      while (true) {
+         cout << "Choose an option:" << endl;
+         cout << "1. Add a book" << endl;
+         cout << "2. Remove a book" << endl;
+         cout << "3. Add a student" << endl;
+         cout << "4. Remove a student" << endl;
+         cout << "5. Add fine to a student" << endl;
+         cout << "6. View fines" << endl;
+         cout << "7. Exit" << endl;
 
-   fines = library.viewFines();
-   for (auto fine : fines) {
-       cout << fine << endl;
+         cin >> option;
+
+         if (option == "1") {
+            // Add a book
+            int bookId;
+            string title, author, publisher;
+            cout << "Enter the ID of the book: ";
+            cin >> bookId;
+            cout << "Enter the title of the book: ";
+            cin >> title;
+            cout << "Enter the author of the book: ";
+            cin >> author;
+            cout << "Enter the publisher of the book: ";
+            cin >> publisher;
+
+            Book book(bookId, title, author, publisher, true, nullptr, nullptr, booksTable);
+            admin.addBook(book);
+         } else if (option == "2") {
+            // Remove a book
+            int bookId;
+            cout << "Enter the ID of the book you want to remove: ";
+            cin >> bookId;
+
+            Book book(bookId, "", "", "", true, nullptr, nullptr, booksTable);
+            admin.removeBook(book);
+         } else if (option == "3") {
+            // Add a student
+            int studentId;
+            string name, email, phone;
+            cout << "Enter the ID of the student: ";
+            cin >> studentId;
+            cout << "Enter the name of the student: ";
+            cin >> name;
+            cout << "Enter theemail of the student: ";
+            cin >> email;
+            cout << "Enter the phone number of the student: ";
+            cin >> phone;
+
+            Login login("student", "password", session);
+            Student student(studentId, name, email, phone, login, studentsTable);
+            admin.addStudent(student);
+         } else if (option == "4") {
+            // Remove a student
+            int studentId;
+            cout << "Enter the ID of the student you want to remove: ";
+            cin >> studentId;
+
+            Student student(studentId, "", "", "", nullptr, studentsTable);
+            admin.removeStudent(student);
+         } else if (option == "5") {
+            // Add fine to a student
+            int studentId;
+            double amount;
+            cout << "Enter the ID of the student you want to add a fine to: ";
+            cin >> studentId;
+            cout << "Enter the amount of the fine: ";
+            cin >> amount;
+
+            Student student(studentId, "", "", "", nullptr, studentsTable);
+            admin.addFine(student, amount);
+         } else if (option == "6") {
+            // View fines
+            admin.viewFines();
+         } else if (option == "7") {
+            // Exit
+            break;
+         } else {
+            cout << "Invalid option. Please try again." << endl;
+         }
+      }
+   } else {
+      cout << "Invalid user type. Please try again." << endl;
    }
 
    return 0;
