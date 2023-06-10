@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <mysqlx/xdevapi.h>
+#include <mysql/mysql.h>
 
 using namespace std;
-using namespace mysqlx;
+using namespace mysql;
 
 class Student;
 class Admin;
